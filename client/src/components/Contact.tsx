@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send, Navigation } from 'lucide-react';
+import { createContactMessage } from '../lib/supabaseClient';
 
 interface ContactFormData {
   firstName: string;
@@ -113,18 +114,14 @@ const Contact: React.FC = () => {
     setSubmitStatus('idle');
 
     try {
-      // TODO: Replace with your data source API call
-      console.log('Contact form submission:', {
+      await createContactMessage({
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        course_interest: formData.courseInterest || null,
+        course_interest: formData.courseInterest || undefined,
         message: formData.message
       });
-      
-      // Simulate successful submission for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setSubmitStatus('success');
       setFormData({

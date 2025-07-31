@@ -1,64 +1,203 @@
-// TODO: Add new data source integration
-// This file previously contained Supabase client functions
-// Replace with your preferred database/API solution
-
+import { supabase } from './supabase';
 import type { ContactMessage, CourseApplication, DemoApplication, NewsletterSubscription, EventRegistration } from './supabase';
 
-// Placeholder functions - replace with actual API calls to your new data source
+// Contact Messages
+export const createContactMessage = async (data: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  course_interest?: string;
+  message: string;
+}): Promise<ContactMessage> => {
+  const { data: result, error } = await supabase
+    .from('contact_messages')
+    .insert({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone: data.phone,
+      course_interest: data.course_interest || null,
+      message: data.message
+    })
+    .select()
+    .single();
 
-export const createContactMessage = async (data: any): Promise<ContactMessage> => {
-  // TODO: Implement with your new data source
-  console.log('Contact message data:', data);
-  throw new Error('Data source not configured. Please implement createContactMessage function.');
+  if (error) {
+    console.error('Error creating contact message:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
-export const createCourseApplication = async (data: any): Promise<CourseApplication> => {
-  // TODO: Implement with your new data source
-  console.log('Course application data:', data);
-  throw new Error('Data source not configured. Please implement createCourseApplication function.');
+// Course Applications
+export const createCourseApplication = async (data: {
+  full_name: string;
+  email: string;
+  phone: string;
+  course_name: string;
+  experience_level: string;
+  interest_message: string;
+}): Promise<CourseApplication> => {
+  const { data: result, error } = await supabase
+    .from('course_applications')
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating course application:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
-export const createDemoApplication = async (data: any): Promise<DemoApplication> => {
-  // TODO: Implement with your new data source
-  console.log('Demo application data:', data);
-  throw new Error('Data source not configured. Please implement createDemoApplication function.');
+// Demo Applications
+export const createDemoApplication = async (data: {
+  name: string;
+  phone: string;
+  email: string;
+  course_for_demo: string;
+  available_time: string;
+  preferred_date?: string;
+}): Promise<DemoApplication> => {
+  const { data: result, error } = await supabase
+    .from('demo_applications')
+    .insert({
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      course_for_demo: data.course_for_demo,
+      available_time: data.available_time,
+      preferred_date: data.preferred_date || null
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating demo application:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
-export const createNewsletterSubscription = async (data: any): Promise<NewsletterSubscription> => {
-  // TODO: Implement with your new data source
-  console.log('Newsletter subscription data:', data);
-  throw new Error('Data source not configured. Please implement createNewsletterSubscription function.');
-};
+// Newsletter Subscriptions
+export const createNewsletterSubscription = async (data: {
+  email: string;
+}): Promise<NewsletterSubscription> => {
+  const { data: result, error } = await supabase
+    .from('newsletter_subscriptions')
+    .insert(data)
+    .select()
+    .single();
 
-export const createEventRegistration = async (data: any): Promise<EventRegistration> => {
-  // TODO: Implement with your new data source
-  console.log('Event registration data:', data);
-  throw new Error('Data source not configured. Please implement createEventRegistration function.');
+  if (error) {
+    console.error('Error creating newsletter subscription:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
 export const checkNewsletterSubscription = async (email: string): Promise<boolean> => {
-  // TODO: Implement with your new data source
-  console.log('Checking newsletter subscription for:', email);
-  return false; // Placeholder return
+  const { data, error } = await supabase
+    .from('newsletter_subscriptions')
+    .select('email')
+    .eq('email', email)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error checking newsletter subscription:', error);
+    return false;
+  }
+
+  return !!data;
 };
 
-// Authentication placeholder functions
+// Event Registrations
+export const createEventRegistration = async (data: {
+  name: string;
+  degree: string;
+  year: string;
+  college_name: string;
+  university_name: string;
+  contact_number: string;
+  alternate_number?: string;
+  email_id: string;
+  certificate_code: string;
+}): Promise<EventRegistration> => {
+  const { data: result, error } = await supabase
+    .from('event_registrations')
+    .insert({
+      name: data.name,
+      degree: data.degree,
+      year: data.year,
+      college_name: data.college_name,
+      university_name: data.university_name,
+      contact_number: data.contact_number,
+      alternate_number: data.alternate_number || null,
+      email_id: data.email_id,
+      certificate_code: data.certificate_code
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating event registration:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
+};
+
+// Authentication functions
 export const getCurrentUser = async () => {
-  // TODO: Implement with your new authentication system
-  return null;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+  
+  return user;
 };
 
 export const signUp = async (email: string, password: string) => {
-  // TODO: Implement with your new authentication system
-  throw new Error('Authentication not configured. Please implement signUp function.');
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    console.error('Error signing up:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
 export const signIn = async (email: string, password: string) => {
-  // TODO: Implement with your new authentication system
-  throw new Error('Authentication not configured. Please implement signIn function.');
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    console.error('Error signing in:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
 export const signOut = async () => {
-  // TODO: Implement with your new authentication system
-  throw new Error('Authentication not configured. Please implement signOut function.');
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error('Error signing out:', error);
+    throw new Error(error.message);
+  }
 };

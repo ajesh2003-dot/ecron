@@ -1,3 +1,4 @@
+import { createNewsletterSubscription, checkNewsletterSubscription } from './supabaseClient';
 
 // Newsletter subscription interface
 export interface NewsletterSubscription {
@@ -17,11 +18,14 @@ export const subscribeToNewsletter = async (email: string): Promise<{ success: b
     const emailToSubscribe = email.toLowerCase().trim();
     
     // Check if already subscribed
-    // TODO: Replace with your data source API call
-    console.log('Newsletter subscription attempt:', emailToSubscribe);
+    const isAlreadySubscribed = await checkNewsletterSubscription(emailToSubscribe);
     
-    // Simulate successful subscription for now
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (isAlreadySubscribed) {
+      return { success: false, error: 'This email is already subscribed to our newsletter' };
+    }
+
+    // Create new subscription
+    await createNewsletterSubscription({ email: emailToSubscribe });
 
 
     return { success: true };
