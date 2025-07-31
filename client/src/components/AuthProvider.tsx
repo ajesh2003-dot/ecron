@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+
+// TODO: Replace with your authentication system types
+interface User {
+  id: string;
+  email: string;
+  // Add other user properties as needed
+}
 
 interface AuthContextType {
   user: User | null;
@@ -22,54 +27,30 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false since no auth system is configured
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // TODO: Initialize your authentication system here
+    // For now, we'll just set loading to false
+    setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    // TODO: Implement with your authentication system
+    console.log('Sign in attempt:', email);
+    throw new Error('Authentication not configured. Please implement signIn function.');
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    // TODO: Implement with your authentication system
+    console.log('Sign up attempt:', email);
+    throw new Error('Authentication not configured. Please implement signUp function.');
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    // TODO: Implement with your authentication system
+    setUser(null);
+    console.log('Sign out');
   };
 
   const value = {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, GraduationCap, Calendar, Building, Phone, Mail, Shield, Send, CheckCircle } from 'lucide-react';
-import { createEventRegistration } from '../lib/supabaseClient';
 
 interface EventRegistrationFormProps {
   onBack: () => void;
@@ -192,7 +191,8 @@ const EventRegistrationForm: React.FC<EventRegistrationFormProps> = ({ onBack })
     setIsSubmitting(true);
 
     try {
-      await createEventRegistration({
+      // TODO: Replace with your data source API call
+      console.log('Event registration submission:', {
         name: formData.name,
         degree: formData.degree,
         year: formData.year,
@@ -203,6 +203,9 @@ const EventRegistrationForm: React.FC<EventRegistrationFormProps> = ({ onBack })
         email_id: formData.emailId,
         certificate_code: formData.certificateCode
       });
+      
+      // Simulate successful submission for now
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Mark as submitted in localStorage
       localStorage.setItem('campusToCloudRegistered', 'true');

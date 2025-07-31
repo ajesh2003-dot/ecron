@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, User, Phone, Mail, Clock, BookOpen, Send } from 'lucide-react';
-import { createDemoApplication } from '../lib/supabaseClient';
 
 interface DemoFormProps {
   isOpen: boolean;
@@ -103,13 +102,17 @@ const DemoForm: React.FC<DemoFormProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      await createDemoApplication({
+      // TODO: Replace with your data source API call
+      console.log('Demo application submission:', {
         name: formData.name,
         phone: formData.phone,
         email: formData.email,
         course_for_demo: formData.courseForDemo,
         available_time: formData.availableTime
       });
+      
+      // Simulate successful submission for now
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       alert('Thank you! Our team will contact you shortly.');
       setFormData({

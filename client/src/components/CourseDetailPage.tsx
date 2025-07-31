@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Mail, Phone, MessageSquare, GraduationCap, Send, CheckCircle } from 'lucide-react';
-import { createCourseApplication } from '../lib/supabaseClient';
 
 interface CourseDetailPageProps {
   courseId: string;
@@ -393,7 +392,8 @@ const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, onBack })
     setSubmitStatus('idle');
 
     try {
-      await createCourseApplication({
+      // TODO: Replace with your data source API call
+      console.log('Course application submission:', {
         full_name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
@@ -401,6 +401,9 @@ const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, onBack })
         experience_level: formData.experienceLevel,
         interest_message: formData.interestMessage
       });
+      
+      // Simulate successful submission for now
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setSubmitStatus('success');
       setFormData({
