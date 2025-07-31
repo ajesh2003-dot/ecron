@@ -59,31 +59,6 @@ const Events: React.FC = () => {
                     <p className="text-xl text-green-100 mb-6">
                       {eventDetails.subtitle}
                     </p>
-                    
-                    {/* Event Meta Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                      <div className="flex items-center justify-center gap-3">
-                        <Calendar size={24} className="text-green-200" />
-                        <div className="text-left">
-                          <div className="font-semibold">{eventDetails.date}</div>
-                          <div className="text-green-200 text-sm">Date</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-center gap-3">
-                        <Clock size={24} className="text-green-200" />
-                        <div className="text-left">
-                          <div className="font-semibold">{eventDetails.time}</div>
-                          <div className="text-green-200 text-sm">Time</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-center gap-3">
-                        <MapPin size={24} className="text-green-200" />
-                        <div className="text-left">
-                          <div className="font-semibold">{eventDetails.venue}</div>
-                          <div className="text-green-200 text-sm">Venue</div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
