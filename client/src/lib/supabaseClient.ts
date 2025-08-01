@@ -1,14 +1,17 @@
-import { apiRequest } from './queryClient';
-import type { 
-  InsertContactMessage, 
-  InsertCourseApplication, 
-  InsertDemoApplication, 
-  InsertNewsletterSubscription,
-  ContactMessage,
-  CourseApplication,
-  DemoApplication,
-  NewsletterSubscription
-} from '../../shared/schema';
+import { supabase } from './supabase';
+import type { Database } from './supabase';
+
+// Type definitions
+type ContactMessage = Database['public']['Tables']['contact_messages']['Row'];
+type ContactMessageInsert = Database['public']['Tables']['contact_messages']['Insert'];
+type CourseApplication = Database['public']['Tables']['course_applications']['Row'];
+type CourseApplicationInsert = Database['public']['Tables']['course_applications']['Insert'];
+type DemoApplication = Database['public']['Tables']['demo_applications']['Row'];
+type DemoApplicationInsert = Database['public']['Tables']['demo_applications']['Insert'];
+type NewsletterSubscription = Database['public']['Tables']['newsletter_subscriptions']['Row'];
+type NewsletterSubscriptionInsert = Database['public']['Tables']['newsletter_subscriptions']['Insert'];
+type EventRegistration = Database['public']['Tables']['event_registrations']['Row'];
+type EventRegistrationInsert = Database['public']['Tables']['event_registrations']['Insert'];
 
 // Contact Messages
 export const createContactMessage = async (data: {
@@ -19,19 +22,27 @@ export const createContactMessage = async (data: {
   course_interest?: string;
   message: string;
 }): Promise<ContactMessage> => {
-  const contactData: InsertContactMessage = {
-    firstName: data.first_name,
-    lastName: data.last_name,
+  const contactData: ContactMessageInsert = {
+    first_name: data.first_name,
+    last_name: data.last_name,
     email: data.email,
     phone: data.phone,
-    courseInterest: data.course_interest || null,
+    course_interest: data.course_interest || null,
     message: data.message
   };
 
-  return await apiRequest('/api/contact', {
-    method: 'POST',
-    body: JSON.stringify(contactData)
-  });
+  const { data: result, error } = await supabase
+    .from('contact_messages')
+    .insert(contactData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating contact message:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
 // Course Applications
@@ -43,19 +54,27 @@ export const createCourseApplication = async (data: {
   experience_level: string;
   interest_message: string;
 }): Promise<CourseApplication> => {
-  const applicationData: InsertCourseApplication = {
-    fullName: data.full_name,
+  const applicationData: CourseApplicationInsert = {
+    full_name: data.full_name,
     email: data.email,
     phone: data.phone,
-    courseName: data.course_name,
-    experienceLevel: data.experience_level,
-    interestMessage: data.interest_message
+    course_name: data.course_name,
+    experience_level: data.experience_level,
+    interest_message: data.interest_message
   };
 
-  return await apiRequest('/api/course-applications', {
-    method: 'POST',
-    body: JSON.stringify(applicationData)
-  });
+  const { data: result, error } = await supabase
+    .from('course_applications')
+    .insert(applicationData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating course application:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
 // Demo Applications
@@ -67,45 +86,64 @@ export const createDemoApplication = async (data: {
   available_time: string;
   preferred_date?: string;
 }): Promise<DemoApplication> => {
-  const demoData: InsertDemoApplication = {
+  const demoData: DemoApplicationInsert = {
     name: data.name,
     phone: data.phone,
     email: data.email,
-    courseForDemo: data.course_for_demo,
-    availableTime: data.available_time,
-    preferredDate: data.preferred_date || null
+    course_for_demo: data.course_for_demo,
+    available_time: data.available_time,
+    preferred_date: data.preferred_date || null
   };
 
-  return await apiRequest('/api/demo-applications', {
-    method: 'POST',
-    body: JSON.stringify(demoData)
-  });
+  const { data: result, error } = await supabase
+    .from('demo_applications')
+    .insert(demoData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating demo application:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
 // Newsletter Subscriptions
 export const createNewsletterSubscription = async (data: {
   email: string;
 }): Promise<NewsletterSubscription> => {
-  const subscriptionData: InsertNewsletterSubscription = {
+  const subscriptionData: NewsletterSubscriptionInsert = {
     email: data.email
   };
 
-  return await apiRequest('/api/newsletter', {
-    method: 'POST',
-    body: JSON.stringify(subscriptionData)
-  });
+  const { data: result, error } = await supabase
+    .from('newsletter_subscriptions')
+    .insert(subscriptionData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating newsletter subscription:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
 export const checkNewsletterSubscription = async (email: string): Promise<boolean> => {
-  try {
-    await apiRequest(`/api/newsletter/check?email=${encodeURIComponent(email)}`);
-    return true;
-  } catch (error: any) {
-    if (error.message.includes('404') || error.message.includes('not found')) {
-      return false;
-    }
-    throw error;
+  const { data, error } = await supabase
+    .from('newsletter_subscriptions')
+    .select('email')
+    .eq('email', email)
+    .single();
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+    console.error('Error checking newsletter subscription:', error);
+    throw new Error(error.message);
   }
+
+  return !!data;
 };
 
 // Event Registrations
@@ -119,42 +157,78 @@ export const createEventRegistration = async (data: {
   alternate_number?: string;
   email_id: string;
   certificate_code: string;
-}) => {
-  const registrationData = {
+}): Promise<EventRegistration> => {
+  const registrationData: EventRegistrationInsert = {
     name: data.name,
     degree: data.degree,
     year: data.year,
-    collegeName: data.college_name,
-    universityName: data.university_name,
-    contactNumber: data.contact_number,
-    alternateNumber: data.alternate_number || null,
-    emailId: data.email_id,
-    certificateCode: data.certificate_code
+    college_name: data.college_name,
+    university_name: data.university_name,
+    contact_number: data.contact_number,
+    alternate_number: data.alternate_number || null,
+    email_id: data.email_id,
+    certificate_code: data.certificate_code
   };
 
-  return await apiRequest('/api/event-registrations', {
-    method: 'POST',
-    body: JSON.stringify(registrationData)
-  });
+  const { data: result, error } = await supabase
+    .from('event_registrations')
+    .insert(registrationData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating event registration:', error);
+    throw new Error(error.message);
+  }
+
+  return result;
 };
 
-// Authentication functions (dummy implementations)
+// Authentication functions
 export const getCurrentUser = async () => {
-  // TODO: Implement backend authentication
-  return null;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+  
+  return user;
 };
 
 export const signUp = async (email: string, password: string) => {
-  // TODO: Implement backend authentication
-  throw new Error('Authentication not implemented');
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    console.error('Error signing up:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
 export const signIn = async (email: string, password: string) => {
-  // TODO: Implement backend authentication
-  throw new Error('Authentication not implemented');
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    console.error('Error signing in:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
 export const signOut = async () => {
-  // TODO: Implement backend authentication
-  throw new Error('Authentication not implemented');
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error('Error signing out:', error);
+    throw new Error(error.message);
+  }
 };
