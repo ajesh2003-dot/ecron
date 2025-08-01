@@ -1,5 +1,14 @@
-import { supabase } from './supabase';
-import type { ContactMessage, CourseApplication, DemoApplication, NewsletterSubscription, EventRegistration } from './supabase';
+import { apiRequest } from './queryClient';
+import type { 
+  InsertContactMessage, 
+  InsertCourseApplication, 
+  InsertDemoApplication, 
+  InsertNewsletterSubscription,
+  ContactMessage,
+  CourseApplication,
+  DemoApplication,
+  NewsletterSubscription
+} from '../../shared/schema';
 
 // Contact Messages
 export const createContactMessage = async (data: {
@@ -10,25 +19,19 @@ export const createContactMessage = async (data: {
   course_interest?: string;
   message: string;
 }): Promise<ContactMessage> => {
-  const { data: result, error } = await supabase
-    .from('contact_messages')
-    .insert({
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone: data.phone,
-      course_interest: data.course_interest || null,
-      message: data.message
-    })
-    .select()
-    .single();
+  const contactData: InsertContactMessage = {
+    firstName: data.first_name,
+    lastName: data.last_name,
+    email: data.email,
+    phone: data.phone,
+    courseInterest: data.course_interest || null,
+    message: data.message
+  };
 
-  if (error) {
-    console.error('Error creating contact message:', error);
-    throw new Error(error.message);
-  }
-
-  return result;
+  return await apiRequest('/api/contact', {
+    method: 'POST',
+    body: JSON.stringify(contactData)
+  });
 };
 
 // Course Applications
@@ -40,18 +43,19 @@ export const createCourseApplication = async (data: {
   experience_level: string;
   interest_message: string;
 }): Promise<CourseApplication> => {
-  const { data: result, error } = await supabase
-    .from('course_applications')
-    .insert(data)
-    .select()
-    .single();
+  const applicationData: InsertCourseApplication = {
+    fullName: data.full_name,
+    email: data.email,
+    phone: data.phone,
+    courseName: data.course_name,
+    experienceLevel: data.experience_level,
+    interestMessage: data.interest_message
+  };
 
-  if (error) {
-    console.error('Error creating course application:', error);
-    throw new Error(error.message);
-  }
-
-  return result;
+  return await apiRequest('/api/course-applications', {
+    method: 'POST',
+    body: JSON.stringify(applicationData)
+  });
 };
 
 // Demo Applications
@@ -63,58 +67,45 @@ export const createDemoApplication = async (data: {
   available_time: string;
   preferred_date?: string;
 }): Promise<DemoApplication> => {
-  const { data: result, error } = await supabase
-    .from('demo_applications')
-    .insert({
-      name: data.name,
-      phone: data.phone,
-      email: data.email,
-      course_for_demo: data.course_for_demo,
-      available_time: data.available_time,
-      preferred_date: data.preferred_date || null
-    })
-    .select()
-    .single();
+  const demoData: InsertDemoApplication = {
+    name: data.name,
+    phone: data.phone,
+    email: data.email,
+    courseForDemo: data.course_for_demo,
+    availableTime: data.available_time,
+    preferredDate: data.preferred_date || null
+  };
 
-  if (error) {
-    console.error('Error creating demo application:', error);
-    throw new Error(error.message);
-  }
-
-  return result;
+  return await apiRequest('/api/demo-applications', {
+    method: 'POST',
+    body: JSON.stringify(demoData)
+  });
 };
 
 // Newsletter Subscriptions
 export const createNewsletterSubscription = async (data: {
   email: string;
 }): Promise<NewsletterSubscription> => {
-  const { data: result, error } = await supabase
-    .from('newsletter_subscriptions')
-    .insert(data)
-    .select()
-    .single();
+  const subscriptionData: InsertNewsletterSubscription = {
+    email: data.email
+  };
 
-  if (error) {
-    console.error('Error creating newsletter subscription:', error);
-    throw new Error(error.message);
-  }
-
-  return result;
+  return await apiRequest('/api/newsletter', {
+    method: 'POST',
+    body: JSON.stringify(subscriptionData)
+  });
 };
 
 export const checkNewsletterSubscription = async (email: string): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from('newsletter_subscriptions')
-    .select('email')
-    .eq('email', email)
-    .single();
-
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error checking newsletter subscription:', error);
-    return false;
+  try {
+    await apiRequest(`/api/newsletter/check?email=${encodeURIComponent(email)}`);
+    return true;
+  } catch (error: any) {
+    if (error.message.includes('404') || error.message.includes('not found')) {
+      return false;
+    }
+    throw error;
   }
-
-  return !!data;
 };
 
 // Event Registrations
@@ -128,76 +119,42 @@ export const createEventRegistration = async (data: {
   alternate_number?: string;
   email_id: string;
   certificate_code: string;
-}): Promise<EventRegistration> => {
-  const { data: result, error } = await supabase
-    .from('event_registrations')
-    .insert({
-      name: data.name,
-      degree: data.degree,
-      year: data.year,
-      college_name: data.college_name,
-      university_name: data.university_name,
-      contact_number: data.contact_number,
-      alternate_number: data.alternate_number || null,
-      email_id: data.email_id,
-      certificate_code: data.certificate_code
-    })
-    .select()
-    .single();
+}) => {
+  const registrationData = {
+    name: data.name,
+    degree: data.degree,
+    year: data.year,
+    collegeName: data.college_name,
+    universityName: data.university_name,
+    contactNumber: data.contact_number,
+    alternateNumber: data.alternate_number || null,
+    emailId: data.email_id,
+    certificateCode: data.certificate_code
+  };
 
-  if (error) {
-    console.error('Error creating event registration:', error);
-    throw new Error(error.message);
-  }
-
-  return result;
+  return await apiRequest('/api/event-registrations', {
+    method: 'POST',
+    body: JSON.stringify(registrationData)
+  });
 };
 
-// Authentication functions
+// Authentication functions (dummy implementations)
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
-  if (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
-  
-  return user;
+  // TODO: Implement backend authentication
+  return null;
 };
 
 export const signUp = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-
-  if (error) {
-    console.error('Error signing up:', error);
-    throw new Error(error.message);
-  }
-
-  return data;
+  // TODO: Implement backend authentication
+  throw new Error('Authentication not implemented');
 };
 
 export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    console.error('Error signing in:', error);
-    throw new Error(error.message);
-  }
-
-  return data;
+  // TODO: Implement backend authentication
+  throw new Error('Authentication not implemented');
 };
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    console.error('Error signing out:', error);
-    throw new Error(error.message);
-  }
+  // TODO: Implement backend authentication
+  throw new Error('Authentication not implemented');
 };
